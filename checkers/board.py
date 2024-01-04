@@ -8,7 +8,7 @@ class Board:
         self.board = [[]]
         self.selected_piece = None
         self.red_left = self.white_left = 12
-        self.red_kings = self.white_kings = 0
+        self.BLACK_kings = self.white_kings = 0
         self.create_board()
 
     def draw_cells(self, win):
@@ -16,6 +16,19 @@ class Board:
         for row in range(ROWS):
             for col in range(row % 2, ROWS, 2):
                 pygame.draw.rect(win, BROWN, (row * SQUARE_SIZE, col * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+
+    def move(self, piece, row, col):
+        self.board[piece.row][piece.col], self.board[row][col] = self.board[row][col], self.board[piece.row][piece.col]
+        piece.move(row, col)
+        if row == ROWS or row == 0:
+            piece.make_king()
+            if piece.color == WHITE:
+                self.white_kings += 1
+            else:
+                self.BLACK_kings += 1
+
+    def get_piece(self, row, col):
+        return self.board[row][col]
 
     def create_board(self):
         for row in range(ROWS):
