@@ -1,5 +1,5 @@
 import pygame
-from .constants import BLACK, COLS, ROWS, BROWN, SQUARE_SIZE, WHITE, BEIGE
+from .constants import *
 from .piece import Piece
 
 
@@ -12,6 +12,8 @@ class Board:
 
     def draw_cells(self, win):
         win.fill(BEIGE)
+        footer = pygame.Rect(0, HEIGHT, WIDTH, 30)
+        pygame.draw.rect(win, BLACK, footer)
         for row in range(ROWS):
             for col in range(row % 2, ROWS, 2):
                 pygame.draw.rect(win, BROWN, (row * SQUARE_SIZE, col * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
@@ -76,11 +78,11 @@ class Board:
         if piece.color == WHITE and not piece.king:
             moves.update(self._traverse_left(row + 1, min(row + 3, ROWS), 1, piece.color, left))
             moves.update(self._traverse_right(row + 1, min(row + 3, ROWS), 1, piece.color, right))
-        has_changed = True
+        has_changed = 0
 
-        while has_changed:
+        while has_changed < 10:
             # Set the flag to False at the beginning of each iteration
-            has_changed = False
+
 
             if piece.king:
                 # Store the current state of the moves dictionary
@@ -92,8 +94,7 @@ class Board:
                 moves.update(self._traverse_right(row + 1, min(row + 3, ROWS), 1, piece.color, right))
 
                 # Check if the moves dictionary has changed
-                if moves != previous_moves:
-                    has_changed = True
+            has_changed += 1
 
         return moves
 
