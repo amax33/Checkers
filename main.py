@@ -61,6 +61,7 @@ def start(mode=0):
     game = Game(WIN)
     while run:
         clock.tick(FPS)
+        game.update()
         if game.winner() is not None:
             print(game.winner(), " Winner")
             pygame.quit()
@@ -86,23 +87,24 @@ def start(mode=0):
                     elif game.turn == WHITE and mode == PLAYER_VS_PLAYER:
                         game.select(row, col)
 
-                
-                game.update()
-
             else:
+                game.update()
                 
                 if game.turn == WHITE:
                     value, new_board_white = minimax(game.get_board(), 4, True, game)
+                    if value == 'False':
+                        return
                     game.ai_move(new_board_white)
-                    game.update()        
                 
                 if game.turn == BLACK:
                     value, new_board_black = minimax(game.get_board(), 4, False, game)
+                    if value == 'False':
+                        return
                     game.ai_move(new_board_black)
 
-                    game.update()        
 
 
+        game.update()
     pygame.quit()
 
 if __name__  == '__main__':
@@ -110,7 +112,7 @@ if __name__  == '__main__':
     pygame.font.init()
 
     while True:
-        FPS = 60
+        FPS = 90
         WIN = pygame.display.set_mode((WIDTH//2, HEIGHT))
         pygame.display.set_caption('Checkers')
         

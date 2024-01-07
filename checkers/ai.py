@@ -2,8 +2,12 @@ from copy import deepcopy
 from .constants import WHITE, BLACK
 
 def minimax(position, depth, max_player, game):
-    if depth == 0 or position.winner() != None:
-        return position.evaluate(), position
+    if position is not None:
+        if depth == 0 or position.winner() != None:
+            return position.evaluate(), position
+    else:
+        print('Draw')
+        return ['False', 'False']
     
     if max_player:
         maxEval = float('-inf')
@@ -43,7 +47,6 @@ def simulate_move(piece, move, board, game, skip):
 
 def get_all_moves(board, color, game):
     moves = []
-
     for piece in board.get_all_pieces(color):
         valid_moves = board.get_valid_moves(piece)
         for move, skip in valid_moves.items():
