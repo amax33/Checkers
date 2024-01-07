@@ -86,6 +86,9 @@ def start(mode=0):
                     elif game.turn == WHITE and mode == PLAYER_VS_PLAYER:
                         game.select(row, col)
 
+                
+                game.update()
+
             else:
                 
                 if game.turn == WHITE:
@@ -100,7 +103,6 @@ def start(mode=0):
                     game.update()        
 
 
-        # game.update()
     pygame.quit()
 
 if __name__  == '__main__':
