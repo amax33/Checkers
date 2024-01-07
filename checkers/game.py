@@ -2,12 +2,14 @@ import pygame
 from .board import Board
 from .constants import *
 
+
 class Game:
     def __init__(self, win):
         self._init()
         self.win = win
         self.font = pygame.font.Font('assets/BELL.TTF', 20)  # Adjust the size as needed
         self.start_time = pygame.time.get_ticks()
+        self.jumping_state = False
 
 
     def update(self):
@@ -45,9 +47,11 @@ class Game:
         if self.selected_piece and piece == 0 and (row, col) in self.valid_moves:
             self.board.move(self.selected_piece, row, col)
             skipped = self.valid_moves[(row, col)]
+            
             if skipped:
                 self.board.remove(skipped)
             self.change_turn()
+        
         else:
             return False
 
@@ -83,3 +87,10 @@ class Game:
         turn_surface = self.font.render(turn_text, True, GOLD)
         self.win.blit(turn_surface, (WIDTH//1.5, HEIGHT + 3))  # Adjust the position and width as needed
 
+    def get_board(self):
+        return self.board
+
+    def ai_move(self, board):
+        self.board = board
+        self.change_turn()
+        

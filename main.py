@@ -2,7 +2,7 @@ import pygame
 import sys
 from checkers.constants import *
 from checkers.game import Game
-
+from checkers.ai import minimax
 
 def get_row_col_from_mouse(pos):
     x, y = pos
@@ -36,23 +36,26 @@ def display_options():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 for i, button in enumerate(buttons):
                     if button.collidepoint(mouse_pos):
                         print(f"Option selected: {options[i]}")
                         return i
+        
         for i, button in enumerate(buttons):
             pygame.draw.rect(WIN, BEIGE if button.collidepoint(mouse_pos) else GOLD,
                              button)  # Change color if mouse over
             text = font.render(options[i], True, BLACK)
             text_rect = text.get_rect(center=button.center)
             WIN.blit(text, text_rect)
+        
         pygame.display.flip()
         pygame.time.Clock().tick(30)
     return -1
 
 
-def p_p():
+def start(mode=0):
     run = True
     clock = pygame.time.Clock()
     game = Game(WIN)
@@ -61,29 +64,63 @@ def p_p():
         if game.winner() is not None:
             print(game.winner())
             pygame.quit()
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                row, col = get_row_col_from_mouse(pos)
-                if game.turn == BLACK:
-                    game.select(row, col)
-                elif game.turn == WHITE:
-                    game.select(row, col)
+            
+            
+            if mode != AI_VS_AI:
+                if game.turn == WHITE and mode == PLAYER_VS_AI:
+                    value, new_board = minimax(game.get_board(), 4, WHITE, game)
+                    game.ai_move(new_board)
+                    
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    row, col = get_row_col_from_mouse(pos)
+                    
+                    if game.turn == BLACK:
+                        game.select(row, col)
+
+                    elif game.turn == WHITE and mode == PLAYER_VS_PLAYER:
+                        game.select(row, col)
+
+            else:
+                
+                if game.turn == WHITE:
+                    value, new_board = minimax(game.get_board(), 4, WHITE, game)
+                    game.ai_move(new_board)
+                
+                elif game.turn == BLACK:
+                    value, new_board = minimax(game.get_board(), 4, BLACK, game)
+                    game.ai_move(new_board)
+                
+
+
         game.update()
     pygame.quit()
 
 if __name__  == '__main__':
     pygame.init()
     pygame.font.init()
+
     while True:
         FPS = 60
         WIN = pygame.display.set_mode((WIDTH//2, HEIGHT))
         pygame.display.set_caption('Checkers')
+        
         mode = display_options()
-        if mode == 0:
+        print(mode)
+        if mode == PLAYER_VS_PLAYER:
             WIN = pygame.display.set_mode((WIDTH, HEIGHT + 30))
-            p_p()
-            break
+            start(mode=PLAYER_VS_PLAYER)
 
+        elif mode == PLAYER_VS_AI:
+            WIN = pygame.display.set_mode((WIDTH, HEIGHT + 30))
+            start(mode=PLAYER_VS_AI)
+
+        elif mode == AI_VS_AI:
+            WIN = pygame.display.set_mode((WIDTH, HEIGHT + 30))
+            start(mode=AI_VS_AI)
+            break

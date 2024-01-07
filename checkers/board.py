@@ -16,7 +16,8 @@ class Board:
         pygame.draw.rect(win, BLACK, footer)
         for row in range(ROWS):
             for col in range(row % 2, ROWS, 2):
-                pygame.draw.rect(win, BROWN, (row * SQUARE_SIZE, col * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+                pygame.draw.rect(win, BROWN, (row * SQUARE_SIZE,
+                                 col * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
 
     def move(self, piece, row, col):
         self.board[piece.row][piece.col], self.board[row][col] = self.board[row][col], self.board[piece.row][piece.col]
@@ -61,11 +62,13 @@ class Board:
                     self.BLACK_left -= 1
                 else:
                     self.white_left -= 1
+
     def winner(self):
         if self.BLACK_left <= 0:
             return WHITE
         elif self.white_left <= 0:
             return BLACK
+
     def get_valid_moves(self, piece):
         moves = {}  # (4,5): [(3,4)]
         left = piece.col - 1
@@ -73,25 +76,34 @@ class Board:
         row = piece.row
 
         if piece.color == BLACK and not piece.king:
-            moves.update(self._traverse_left(row - 1, max(row - 3, -1), -1, piece.color, left))
-            moves.update(self._traverse_right(row - 1, max(row - 3, -1), -1, piece.color, right))
+            moves.update(self._traverse_left(
+                row - 1, max(row - 3, -1), -1, piece.color, left))
+            moves.update(self._traverse_right(
+                row - 1, max(row - 3, -1), -1, piece.color, right))
+
         if piece.color == WHITE and not piece.king:
-            moves.update(self._traverse_left(row + 1, min(row + 3, ROWS), 1, piece.color, left))
-            moves.update(self._traverse_right(row + 1, min(row + 3, ROWS), 1, piece.color, right))
+            moves.update(self._traverse_left(
+                row + 1, min(row + 3, ROWS), 1, piece.color, left))
+            moves.update(self._traverse_right(
+                row + 1, min(row + 3, ROWS), 1, piece.color, right))
+
         has_changed = 0
 
         while has_changed < 10:
             # Set the flag to False at the beginning of each iteration
 
-
             if piece.king:
                 # Store the current state of the moves dictionary
                 previous_moves = dict(moves)
 
-                moves.update(self._traverse_left(row - 1, max(row - 3, -1), -1, piece.color, left))
-                moves.update(self._traverse_left(row + 1, min(row + 3, ROWS), 1, piece.color, left))
-                moves.update(self._traverse_right(row - 1, max(row - 3, -1), -1, piece.color, right))
-                moves.update(self._traverse_right(row + 1, min(row + 3, ROWS), 1, piece.color, right))
+                moves.update(self._traverse_left(
+                    row - 1, max(row - 3, -1), -1, piece.color, left))
+                moves.update(self._traverse_left(
+                    row + 1, min(row + 3, ROWS), 1, piece.color, left))
+                moves.update(self._traverse_right(
+                    row - 1, max(row - 3, -1), -1, piece.color, right))
+                moves.update(self._traverse_right(
+                    row + 1, min(row + 3, ROWS), 1, piece.color, right))
 
                 # Check if the moves dictionary has changed
             has_changed += 1
@@ -99,6 +111,15 @@ class Board:
         return moves
 
     def _traverse_left(self, start, stop, step, color, left, skipped=[]):
+        """
+        :start: The starting row index for traversal.
+        :stop: The stopping row index for traversal.
+        :step: The direction of traversal (1 for moving down, -1 for moving up).
+        :color: The color of the current piece.
+        :left: The initial column index for traversal.
+        :skipped: A list to keep track of any opponent pieces that have been skipped.
+        """
+
         moves = {}
         last = []
         for r in range(start, stop, step):
@@ -118,8 +139,10 @@ class Board:
                         row = max(r - 3, -1)
                     else:
                         row = min(r + 3, ROWS)
-                    moves.update(self._traverse_left(r + step, row, step, color, left - 1, skipped=last))
-                    moves.update(self._traverse_right(r + step, row, step, color, left + 1, skipped=last))
+                    moves.update(self._traverse_left(
+                        r + step, row, step, color, left - 1, skipped=last))
+                    moves.update(self._traverse_right(
+                        r + step, row, step, color, left + 1, skipped=last))
                 break
 
             elif current.color == color:
@@ -150,8 +173,10 @@ class Board:
                         row = max(r - 3, -1)
                     else:
                         row = min(r + 3, ROWS)
-                    moves.update(self._traverse_left(r + step, row, step, color, right - 1, skipped=last))
-                    moves.update(self._traverse_right(r + step, row, step, color, right + 1, skipped=last))
+                    moves.update(self._traverse_left(
+                        r + step, row, step, color, right - 1, skipped=last))
+                    moves.update(self._traverse_right(
+                        r + step, row, step, color, right + 1, skipped=last))
                 break
 
             elif current.color == color:
@@ -161,3 +186,16 @@ class Board:
 
             right += 1
         return moves
+    
+
+    def get_all_pieces(self, color):
+        pieces = []
+        for row in self.board:
+            for piece in row:
+                if piece != 0 and piece.color == color:
+                    pieces.append(piece)
+        return pieces
+    
+    def evaluate(self):
+        return self.white_left - self.BLACK_left + (self.white_kings * 0.5 - self.BLACK_kings * 0.5)
+

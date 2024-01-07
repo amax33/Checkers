@@ -4,7 +4,6 @@ from .constants import BLACK, WHITE, SQUARE_SIZE, CROWN_BLACK, CROWN_WHITE
 
 
 class Piece:
-
     def __init__(self, row, col, color):
         self.row = row
         self.col = col
