@@ -89,16 +89,18 @@ def start(mode=0):
             else:
                 
                 if game.turn == WHITE:
-                    value, new_board = minimax(game.get_board(), 4, WHITE, game)
-                    game.ai_move(new_board)
+                    value, new_board_white = minimax(game.get_board(), 4, True, game)
+                    game.ai_move(new_board_white)
+                    game.update()        
                 
-                elif game.turn == BLACK:
-                    value, new_board = minimax(game.get_board(), 4, BLACK, game)
-                    game.ai_move(new_board)
-                
+                if game.turn == BLACK:
+                    value, new_board_black = minimax(game.get_board(), 4, False, game)
+                    game.ai_move(new_board_black)
+
+                    game.update()        
 
 
-        game.update()
+        # game.update()
     pygame.quit()
 
 if __name__  == '__main__':
