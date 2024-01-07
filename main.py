@@ -62,7 +62,7 @@ def start(mode=0):
     while run:
         clock.tick(FPS)
         if game.winner() is not None:
-            print(game.winner())
+            print(game.winner(), " Winner")
             pygame.quit()
         
         for event in pygame.event.get():
@@ -113,7 +113,6 @@ if __name__  == '__main__':
         pygame.display.set_caption('Checkers')
         
         mode = display_options()
-        print(mode)
         if mode == PLAYER_VS_PLAYER:
             WIN = pygame.display.set_mode((WIDTH, HEIGHT + 30))
             start(mode=PLAYER_VS_PLAYER)

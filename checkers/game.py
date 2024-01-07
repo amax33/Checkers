@@ -13,7 +13,6 @@ class Game:
 
 
     def update(self):
-        print(self.win)
         self.board.draw(self.win)
         self.draw_valid_moves(self.valid_moves)
         self.draw_time()

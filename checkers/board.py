@@ -87,26 +87,21 @@ class Board:
             moves.update(self._traverse_right(
                 row + 1, min(row + 3, ROWS), 1, piece.color, right))
 
-        has_changed = 0
+       
+        if piece.king:
+            # Store the current state of the moves dictionary
+            previous_moves = dict(moves)
 
-        while has_changed < 10:
-            # Set the flag to False at the beginning of each iteration
-
-            if piece.king:
-                # Store the current state of the moves dictionary
-                previous_moves = dict(moves)
-
-                moves.update(self._traverse_left(
-                    row - 1, max(row - 3, -1), -1, piece.color, left))
-                moves.update(self._traverse_left(
-                    row + 1, min(row + 3, ROWS), 1, piece.color, left))
-                moves.update(self._traverse_right(
-                    row - 1, max(row - 3, -1), -1, piece.color, right))
-                moves.update(self._traverse_right(
-                    row + 1, min(row + 3, ROWS), 1, piece.color, right))
+            moves.update(self._traverse_left(
+                row - 1, max(row - 3, -1), -1, piece.color, left))
+            moves.update(self._traverse_left(
+                row + 1, min(row + 3, ROWS), 1, piece.color, left))
+            moves.update(self._traverse_right(
+                row - 1, max(row - 3, -1), -1, piece.color, right))
+            moves.update(self._traverse_right(
+                row + 1, min(row + 3, ROWS), 1, piece.color, right))
 
                 # Check if the moves dictionary has changed
-            has_changed += 1
 
         return moves
 
