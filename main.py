@@ -2,13 +2,31 @@ import pygame
 import sys
 from checkers.constants import *
 from checkers.game import Game
-from checkers.ai import minimax
+from checkers.ai import minimax, minimax_with_alpha_beta, minimax_with_forward_pruning
 
 def get_row_col_from_mouse(pos):
     x, y = pos
     row = y // SQUARE_SIZE
     col = x // SQUARE_SIZE
     return row, col
+
+def display_win_window(winner):
+    pygame.font.init()
+    font = pygame.font.Font('assets/BELL.TTF', 40)
+    WIN.blit(DARK_RED, DARK_RED.get_rect())
+    text = font.render(f'{winner} wone!', True, GOLD)
+    text_rect = text.get_rect()
+    text_rect.center = (WIDTH // 4, HEIGHT//4)
+    WIN.blit(text, text_rect)
+
+    run = True
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+    return -1
 
 
 def display_options():
@@ -64,6 +82,7 @@ def start(mode=0):
         game.update()
         if game.winner() is not None:
             print(game.winner(), " Winner")
+            display_win_window(game.winner())
             pygame.quit()
         
         for event in pygame.event.get():
@@ -89,19 +108,22 @@ def start(mode=0):
 
             else:
                 game.update()
-                
+
                 if game.turn == WHITE:
-                    value, new_board_white = minimax(game.get_board(), 4, True, game)
+                    value, new_board_white = minimax_with_alpha_beta(game.get_board(), 4, float('-inf'), float('inf'), False, game)
+                    print(value, new_board_white)
                     if value == 'False':
                         return
                     game.ai_move(new_board_white)
+                    clock.tick(FPS)
                 
                 if game.turn == BLACK:
-                    value, new_board_black = minimax(game.get_board(), 4, False, game)
+                    value, new_board_black = minimax_with_alpha_beta(game.get_board(), 4, float('-inf'), float('inf'), True, game)
+                    print(value, new_board_black)
                     if value == 'False':
                         return
                     game.ai_move(new_board_black)
-
+                    clock.tick(FPS)
 
 
         game.update()
@@ -112,7 +134,7 @@ if __name__  == '__main__':
     pygame.font.init()
 
     while True:
-        FPS = 90
+        FPS = 60
         WIN = pygame.display.set_mode((WIDTH//2, HEIGHT))
         pygame.display.set_caption('Checkers')
         
