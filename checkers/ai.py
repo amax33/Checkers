@@ -12,17 +12,55 @@ def evaluate_board(board):
     for row in range(ROWS):
         for piece in board[row]:
             if piece is not None:
-                # Evaluate based on distance to the opposing side
+                # Feature 1: Material Count
                 if piece.color == WHITE:
-                    white_score += 1 + row
+                    white_score += 1
                     if piece.king:
                         white_score += 1
                 elif piece.color == BLACK:
-                    black_score += 1 + (ROWS - 1 - row)
+                    black_score += 1
                     if piece.king:
                         black_score += 1
 
+                # Feature 2: King Proximity
+                if piece.king:
+                    # Encourage kings to be positioned in the center of the board
+                    white_score += 1 if piece.color == WHITE else 0
+                    black_score += 1 if piece.color == BLACK else 0
+
+                # Feature 3: Piece Advancement
+                if piece.color == WHITE:
+                    white_score += piece.row
+                elif piece.color == BLACK:
+                    black_score += ROWS - 1 - piece.row
+
+                # Feature 4: Control of the Center
+                center_row = ROWS // 2
+                if piece.row == center_row:
+                    white_score += 1 if piece.color == WHITE else 0
+                    black_score += 1 if piece.color == BLACK else 0
+
+                # Feature 5: King Safety (evaluate based on proximity to opponent pieces)
+                if piece.color == WHITE:
+                    # Penalize positions where white kings are vulnerable
+                    white_score -= sum(1 for opp_piece in board.get_all_pieces(BLACK) if opp_piece.row == piece.row - 1 and abs(opp_piece.col - piece.col) == 1)
+                elif piece.color == BLACK:
+                    # Penalize positions where black kings are vulnerable
+                    black_score -= sum(1 for opp_piece in board.get_all_pieces(WHITE) if opp_piece.row == piece.row + 1 and abs(opp_piece.col - piece.col) == 1)
+
+                # Feature 6: Mobility
+                # Encourage greater mobility by giving higher scores to positions that allow for more legal moves
+                moves_count = len(board.get_valid_moves(piece))
+                if piece.color == WHITE:
+                    white_score += moves_count
+                elif piece.color == BLACK:
+                    black_score += moves_count
+
+                # Feature 7: Double and Triple Jumps (not explicitly implemented, but moves_count can indirectly account for this)
+                
     return white_score - black_score
+
+
 
 
 def minimax(position, depth, max_player, game):

@@ -69,7 +69,6 @@ class Board:
         elif self.white_left <= 0:
             return BLACK
 
-
     def get_valid_moves(self, piece):
         moves = {}  # (4,5): [(3,4)]
         left = piece.col - 1
@@ -88,7 +87,6 @@ class Board:
             moves.update(self._traverse_right(
                 row + 1, min(row + 3, ROWS), 1, piece.color, right))
 
-       
         if piece.king:
             # Store the current state of the moves dictionary
             previous_moves = dict(moves)
@@ -102,7 +100,7 @@ class Board:
             moves.update(self._traverse_right(
                 row + 1, min(row + 3, ROWS), 1, piece.color, right))
 
-                # Check if the moves dictionary has changed
+            # Check if the moves dictionary has changed
 
         return moves
 
@@ -182,7 +180,6 @@ class Board:
 
             right += 1
         return moves
-    
 
     def get_all_pieces(self, color):
         pieces = []
@@ -191,7 +188,147 @@ class Board:
                 if piece != 0 and piece.color == color:
                     pieces.append(piece)
         return pieces
-    
-    def evaluate(self):
-        return self.white_left - self.BLACK_left + (self.white_kings * 0.5 - self.BLACK_kings * 0.5)
 
+    def _get_jump_moves(self, piece, direction, step, color, col, skipped=[]):
+        moves = {}
+        last = []
+        for r in range(piece.row + direction, piece.row + direction * 3, step):
+            if col < 0 or col >= COLS:
+                break
+            current = self.board[r][col]
+            if current == 0:
+                if skipped and not last:
+                    break
+                elif skipped:
+                    moves[(r, col)] = last + skipped
+                else:
+                    moves[(r, col)] = last
+
+                if last:
+                    next_col = col - 1 if step == -1 else col + 1
+                    moves.update(self._get_jump_moves(
+                        piece, direction, step, color, next_col, skipped=last))
+                break
+
+            elif current.color == color:
+                break
+            else:
+                last = [current]
+
+            col += 1
+        return moves
+    
+
+    def _count_jumps(self, piece):
+        jump_count = 0
+
+        if piece.color == BLACK and not piece.king:
+            jump_count += self._count_jump_moves(
+                piece, -1, piece.row - 2, -1, piece.color, piece.col - 2)
+            jump_count += self._count_jump_moves(
+                piece, -1, piece.row - 2, 1, piece.color, piece.col + 2)
+
+        if piece.color == WHITE and not piece.king:
+            jump_count += self._count_jump_moves(
+                piece, 1, piece.row + 2, -1, piece.color, piece.col - 2)
+            jump_count += self._count_jump_moves(
+                piece, 1, piece.row + 2, 1, piece.color, piece.col + 2)
+
+        if piece.king:
+            jump_count += self._count_jump_moves(
+                piece, -1, piece.row - 2, -1, piece.color, piece.col - 2)
+            jump_count += self._count_jump_moves(
+                piece, -1, piece.row - 2, 1, piece.color, piece.col + 2)
+            jump_count += self._count_jump_moves(
+                piece, 1, piece.row + 2, -1, piece.color, piece.col - 2)
+            jump_count += self._count_jump_moves(
+                piece, 1, piece.row + 2, 1, piece.color, piece.col + 2)
+
+        return jump_count
+
+    def _count_jump_moves(self, piece, direction, stop, step, color, col):
+        jump_count = 0
+        for r in range(piece.row + direction, stop, step):
+            if 0 <= r < ROWS and 0 <= col < COLS:  # Check if indices are within valid range
+                current = self.board[r][col]
+                if current == 0:
+                    break
+                elif current.color == color:
+                    break
+                else:
+                    next_col = col + 1 if step == -1 else col - 1
+                    if 0 <= r + direction < ROWS and 0 <= next_col < COLS:  # Check if indices are within valid range
+                        next_square = self.board[r + direction][next_col]
+                        if next_square == 0:
+                            jump_count += 1
+                        col += 2
+                    else:
+                        break
+            else:
+                break
+
+        return jump_count
+
+
+    def evaluate(self):
+        white_score = 0
+        black_score = 0
+
+        for row in self.board:
+            for piece in row:
+                if piece != 0:
+                    # Feature 1: Material Count
+                    if piece.color == WHITE:
+                        white_score += 1
+                        if piece.king:
+                            white_score += 1
+                    elif piece.color == BLACK:
+                        black_score += 1
+                        if piece.king:
+                            black_score += 1
+
+                    # Feature 2: King Proximity
+                    if piece.king:
+                        # Encourage kings to be positioned in the center of the board
+                        white_score += 1 if piece.color == WHITE else 0
+                        black_score += 1 if piece.color == BLACK else 0
+
+                    # Feature 3: Piece Advancement
+                    if piece.color == WHITE:
+                        white_score += piece.row
+                    elif piece.color == BLACK:
+                        black_score += ROWS - 1 - piece.row
+
+                    # Feature 4: Control of the Center
+                    center_row = ROWS // 2
+                    if piece.row == center_row:
+                        white_score += 1 if piece.color == WHITE else 0
+                        black_score += 1 if piece.color == BLACK else 0
+
+                    # Feature 5: King Safety (evaluate based on proximity to opponent pieces)
+                    if piece.color == WHITE:
+                        # Penalize positions where white kings are vulnerable
+                        white_score -= sum(1 for opp_piece in self.get_all_pieces(
+                            BLACK) if opp_piece.row == piece.row - 1 and abs(opp_piece.col - piece.col) == 1)
+                    elif piece.color == BLACK:
+                        # Penalize positions where black kings are vulnerable
+                        black_score -= sum(1 for opp_piece in self.get_all_pieces(
+                            WHITE) if opp_piece.row == piece.row + 1 and abs(opp_piece.col - piece.col) == 1)
+
+                    # Feature 6: Mobility
+                    # Encourage greater mobility by giving higher scores to positions that allow for more legal moves
+                    moves_count = len(self.get_valid_moves(piece))
+                    if piece.color == WHITE:
+                        white_score += moves_count
+                    elif piece.color == BLACK:
+                        black_score += moves_count
+
+                    # New Feature: Jump Count
+                    jump_count = self._count_jumps(piece)
+                    if piece.color == WHITE:
+                        white_score += jump_count
+                    elif piece.color == BLACK:
+                        black_score += jump_count
+
+
+        return white_score - black_score
