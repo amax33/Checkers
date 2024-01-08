@@ -14,9 +14,15 @@ class Game:
     def update(self):
         self.board.draw(self.win)
         self.draw_valid_moves(self.valid_moves)
+        self.draw_selected_piece()
         self.draw_time()
         self.draw_turn()
         pygame.display.update()
+
+    def draw_selected_piece(self):
+        if self.selected_piece:
+            row, col = self.selected_piece.row, self.selected_piece.col
+            pygame.draw.rect(self.win, GRAY, (col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE), width=5)
 
     def _init(self):
         self.selected_piece = None
@@ -57,10 +63,20 @@ class Game:
     def draw_valid_moves(self, moves):
         for move in moves:
             row, col = move
-            pygame.draw.circle(self.win, GREEN,
-                               (col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 2),
-                               SQUARE_SIZE // 3)
 
+            # Star coordinates
+            star_points = [(col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 8),  # Top point
+                           (col * SQUARE_SIZE + SQUARE_SIZE * 3 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 3 // 8), # Up left
+                           (col * SQUARE_SIZE + SQUARE_SIZE // 8, row * SQUARE_SIZE + SQUARE_SIZE // 2),  # Middle left
+                           (col * SQUARE_SIZE + SQUARE_SIZE * 3 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 5 // 8), # Down left
+                           (col * SQUARE_SIZE + SQUARE_SIZE // 2, (row + 1) * SQUARE_SIZE - SQUARE_SIZE // 8),  # Middle down
+                           (col * SQUARE_SIZE + SQUARE_SIZE * 5 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 5 // 8), # Down right
+                            ((col+1) * SQUARE_SIZE - SQUARE_SIZE // 8, row * SQUARE_SIZE + SQUARE_SIZE // 2),  # Middle right
+                            (col * SQUARE_SIZE + SQUARE_SIZE * 5 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 3 // 8),  # Up right
+                            (col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 8)]  # Top point
+
+
+            pygame.draw.polygon(self.win, GRAY, star_points)
     def winner(self):
         return self.board.winner()
 

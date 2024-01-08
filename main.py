@@ -137,7 +137,8 @@ if __name__  == '__main__':
         FPS = 60
         WIN = pygame.display.set_mode((WIDTH//2, HEIGHT))
         pygame.display.set_caption('Checkers')
-        
+        icon = pygame.transform.scale(ICON, ICON_SIZE)
+        pygame.display.set_icon(icon)
         mode = display_options()
         if mode == PLAYER_VS_PLAYER:
             WIN = pygame.display.set_mode((WIDTH, HEIGHT + 30))
