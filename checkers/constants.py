@@ -27,3 +27,8 @@ ICON = pygame.transform.scale(pygame.image.load('assets/ICON.png'), (WIDTH//2, H
 PLAYER_VS_PLAYER = 0
 PLAYER_VS_AI = 1
 AI_VS_AI = 2
+
+EASY = 2
+NORMAL = 4
+HARD = 6
+

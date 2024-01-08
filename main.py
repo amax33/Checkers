@@ -73,7 +73,52 @@ def display_options():
     return -1
 
 
-def start(mode=0):
+def level_options(color):
+    WIN = pygame.display.set_mode((WIDTH // 2, HEIGHT // 2))
+    pygame.font.init()
+    font = pygame.font.Font('assets/BELL.TTF', 15)
+    WIN.blit(DARK_RED, DARK_RED.get_rect())
+    text = font.render('Choose level of hardness of ' + color + ' Player', True, GOLD)
+    text_rect = text.get_rect()
+    text_rect.center = (WIDTH // 4, HEIGHT // 8)
+    WIN.blit(text, text_rect)
+    font = pygame.font.Font('assets/BELL.TTF', 15)
+    options = ["Easy", "Normal", "Hard"]
+    button_width, button_height = 150, 30
+
+    buttons = []
+    for i, option in enumerate(options):
+        button_rect = pygame.Rect((WIDTH // 2 - button_width) // 2,
+                                  (HEIGHT // 3 + i * 40) - (4 - i) * 20 - (button_height // 2),
+                                  button_width, button_height)
+        buttons.append(button_rect)
+
+    run = True
+    while run:
+        mouse_pos = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for i, button in enumerate(buttons):
+                    if button.collidepoint(mouse_pos):
+                        print(f"Option selected: {options[i]}")
+                        return i
+
+        for i, button in enumerate(buttons):
+            pygame.draw.rect(WIN, BEIGE if button.collidepoint(mouse_pos) else GOLD,
+                             button)  # Change color if mouse over
+            text = font.render(options[i], True, BLACK)
+            text_rect = text.get_rect(center=button.center)
+            WIN.blit(text, text_rect)
+
+        pygame.display.flip()
+        pygame.time.Clock().tick(30)
+    return -1
+
+def start(mode=0, levelW=0, levelB=0):
     run = True
     clock = pygame.time.Clock()
     game = Game(WIN)
@@ -92,7 +137,7 @@ def start(mode=0):
             
             if mode != AI_VS_AI:
                 if game.turn == WHITE and mode == PLAYER_VS_AI:
-                    value, new_board = minimax(game.get_board(), 4, WHITE, game)
+                    value, new_board = minimax(game.get_board(), levelW, WHITE, game)
                     game.ai_move(new_board)
                     
 
@@ -110,7 +155,7 @@ def start(mode=0):
                 game.update()
 
                 if game.turn == WHITE:
-                    value, new_board_white = minimax_with_alpha_beta(game.get_board(), 4, float('-inf'), float('inf'), False, game)
+                    value, new_board_white = minimax_with_alpha_beta(game.get_board(), levelW, float('-inf'), float('inf'), False, game)
                     print(value, new_board_white)
                     if value == 'False':
                         return
@@ -118,7 +163,7 @@ def start(mode=0):
                     clock.tick(FPS)
                 
                 if game.turn == BLACK:
-                    value, new_board_black = minimax_with_alpha_beta(game.get_board(), 4, float('-inf'), float('inf'), True, game)
+                    value, new_board_black = minimax_with_alpha_beta(game.get_board(), levelB, float('-inf'), float('inf'), True, game)
                     print(value, new_board_black)
                     if value == 'False':
                         return
@@ -145,10 +190,13 @@ if __name__  == '__main__':
             start(mode=PLAYER_VS_PLAYER)
 
         elif mode == PLAYER_VS_AI:
+            levelw = level_options('AI')
             WIN = pygame.display.set_mode((WIDTH, HEIGHT + 30))
-            start(mode=PLAYER_VS_AI)
+            start(mode=PLAYER_VS_AI, levelW=levelw)
 
         elif mode == AI_VS_AI:
+            levelw = level_options('White')
+            levelb = level_options('Black')
             WIN = pygame.display.set_mode((WIDTH, HEIGHT + 30))
-            start(mode=AI_VS_AI)
+            start(mode=AI_VS_AI, levelW=levelw, levelB=levelb)
             break
