@@ -1,4 +1,9 @@
+import copy
+import copyreg
+
+import numpy as np
 import pygame
+from copy import deepcopy
 from .constants import *
 from .piece import Piece
 
@@ -6,7 +11,7 @@ from .piece import Piece
 class Board:
     def __init__(self):
         self.board = [[]]
-        self.BLACK_left = self.white_left = 12
+        self.BLACK_left = self.white_left = 0
         self.BLACK_kings = self.white_kings = 0
         self.create_board()
 
@@ -17,7 +22,7 @@ class Board:
         for row in range(ROWS):
             for col in range(row % 2, ROWS, 2):
                 pygame.draw.rect(win, BROWN, (row * SQUARE_SIZE,
-                                 col * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+                                              col * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
 
     def move(self, piece, row, col):
         self.board[piece.row][piece.col], self.board[row][col] = self.board[row][col], self.board[piece.row][piece.col]
@@ -57,93 +62,106 @@ class Board:
     def remove(self, pieces):
         for piece in pieces:
             self.board[piece.row][piece.col] = 0
-            if piece != 0:
-                if piece.color == BLACK:
-                    self.BLACK_left -= 1
-                else:
-                    self.white_left -= 1
 
     def winner(self):
+        for row in self.board:
+            for e in row:
+                if isinstance(e, Piece):
+                    if e.color == BLACK:
+                        self.BLACK_left += 1
+                    elif e.color == WHITE:
+                        self.white_left += 1
         if self.BLACK_left <= 0:
             return WHITE
         elif self.white_left <= 0:
             return BLACK
+        else:
+            self.BLACK_left = 0
+            self.white_left = 0
 
-    def get_valid_moves(self, piece):
-        moves = {}  # (4,5): [(3,4)]
+    def get_valid_moves(self, piece, flag=True):
+        moves = {}
         left = piece.col - 1
         right = piece.col + 1
         row = piece.row
-
-        if piece.color == BLACK and not piece.king:
-            moves.update(self._traverse_left(
-                row - 1, max(row - 3, -1), -1, piece.color, left))
-            moves.update(self._traverse_right(
-                row - 1, max(row - 3, -1), -1, piece.color, right))
-
-        if piece.color == WHITE and not piece.king:
-            moves.update(self._traverse_left(
-                row + 1, min(row + 3, ROWS), 1, piece.color, left))
-            moves.update(self._traverse_right(
-                row + 1, min(row + 3, ROWS), 1, piece.color, right))
-
-        if piece.king:
-            # Store the current state of the moves dictionary
-            previous_moves = dict(moves)
-
-            moves.update(self._traverse_left(
-                row - 1, max(row - 3, -1), -1, piece.color, left))
-            moves.update(self._traverse_left(
-                row + 1, min(row + 3, ROWS), 1, piece.color, left))
-            moves.update(self._traverse_right(
-                row - 1, max(row - 3, -1), -1, piece.color, right))
-            moves.update(self._traverse_right(
-                row + 1, min(row + 3, ROWS), 1, piece.color, right))
-
-            # Check if the moves dictionary has changed
-
+        if piece.color == BLACK or piece.king:
+            moves.update(self._traverse_left(row - 1, max(row - 3, -1), -1, piece.color, left))
+            moves.update(self._traverse_right(row - 1, max(row - 3, -1), -1, piece.color, right))
+        if piece.color == WHITE or piece.king:
+            moves.update(self._traverse_left(row + 1, min(row + 3, ROWS), 1, piece.color, left))
+            moves.update(self._traverse_right(row + 1, min(row + 3, ROWS), 1, piece.color, right))
+        if piece.king and flag:
+            new_moves = copy.deepcopy(moves) # Create a copy of moves
+            for (r, c) in moves:
+                if moves[(r, c)]:
+                    temp_board = copy.deepcopy(self)
+                    temp_board.board = copy.deepcopy(self.board)
+                    temp_board.BLACK_left = np.inf
+                    temp_board.white_left = np.inf
+                    skip = moves[(r, c)]
+                    if skip:
+                        temp_board.remove(skip)
+                    row = r
+                    left = c - 1
+                    right = c + 1
+                    new_moves.update(temp_board._traverse_left(row + 1, min(row + 3, ROWS), 1, piece.color, left, skipped=moves[(r, c)]))
+                    new_moves.update(temp_board._traverse_right(row + 1, min(row + 3, ROWS), 1, piece.color, right, skipped=moves[(r, c)]))
+                    new_moves.update(temp_board._traverse_left(row - 1, max(row - 3, -1), -1, piece.color, left, skipped=moves[(r, c)]))
+                    new_moves.update(temp_board._traverse_right(row - 1, max(row - 3, -1), -1, piece.color, right, skipped=moves[(r, c)]))
+                moves = self.combine_dict(moves, new_moves)
         return moves
 
-    def _traverse_left(self, start, stop, step, color, left, skipped=[]):
-        """
-        :start: The starting row index for traversal.
-        :stop: The stopping row index for traversal.
-        :step: The direction of traversal (1 for moving down, -1 for moving up).
-        :color: The color of the current piece.
-        :left: The initial column index for traversal.
-        :skipped: A list to keep track of any opponent pieces that have been skipped.
-        """
+    def combine_dict(self, dict1, dict2):
+        combined_dict = {}
+        # Merge dictionaries
+        for key, value in dict1.items():
+            if key in dict2:
+                combined_dict[key] = value + dict2[key]
+            else:
+                combined_dict[key] = value
 
+        # Add remaining keys from dict2
+        for key, value in dict2.items():
+            if key not in combined_dict:
+                combined_dict[key] = value
+        return combined_dict
+
+    def _traverse_left(self, start, stop, step, color, left, skipped=[]):
         moves = {}
         last = []
         for r in range(start, stop, step):
             if left < 0:
                 break
             current = self.board[r][left]
+            # empty square found
             if current == 0:
+                # we we skipped over something which is not last and we found a blank square --> break
                 if skipped and not last:
                     break
                 elif skipped:
+                    # double jump
                     moves[(r, left)] = last + skipped
+                # if it is zero and last existed that means we can jump over it now
                 else:
+                    # first one
                     moves[(r, left)] = last
 
+                # here if there was something that we skipped, in this part we prepare for double or tripple jump now
                 if last:
                     if step == -1:
-                        row = max(r - 3, -1)
+                        row = max(r - 3, 0)
                     else:
                         row = min(r + 3, ROWS)
-                    moves.update(self._traverse_left(
-                        r + step, row, step, color, left - 1, skipped=last))
-                    moves.update(self._traverse_right(
-                        r + step, row, step, color, left + 1, skipped=last))
+                    # now we recalculate where we are going to stop
+                    moves.update(self._traverse_left(r + step, row, step, color, left - 1, skipped=last))
+                    moves.update(self._traverse_right(r + step, row, step, color, left + 1, skipped=last))
                 break
-
+            # the piece we are trying to move is same as that of ours so we are blocked hence break
             elif current.color == color:
                 break
+            # Now we can move over that peice assuming that there is an empty square after that
             else:
                 last = [current]
-
             left -= 1
         return moves
 
@@ -154,30 +172,35 @@ class Board:
             if right >= COLS:
                 break
             current = self.board[r][right]
+            # empty square found
             if current == 0:
+                # we we skipped over something which is not last and we found a blank square --> break
                 if skipped and not last:
                     break
                 elif skipped:
+                    # double jump
                     moves[(r, right)] = last + skipped
+                # if it is zero and last existed that means we can jump over it now
                 else:
+                    # first one
                     moves[(r, right)] = last
 
+                # here if there was something that we skipped, in this part we prepare for double or tripple jump now
                 if last:
                     if step == -1:
-                        row = max(r - 3, -1)
+                        row = max(r - 3, 0)
                     else:
                         row = min(r + 3, ROWS)
-                    moves.update(self._traverse_left(
-                        r + step, row, step, color, right - 1, skipped=last))
-                    moves.update(self._traverse_right(
-                        r + step, row, step, color, right + 1, skipped=last))
+                    # now we recalculate where we are going to stop
+                    moves.update(self._traverse_left(r + step, row, step, color, right - 1, skipped=last))
+                    moves.update(self._traverse_right(r + step, row, step, color, right + 1, skipped=last))
                 break
-
+            # the piece we are trying to move is same as that of ours so we are blocked hence break
             elif current.color == color:
                 break
+            # Now we can move over that peice assuming that there is an empty square after that
             else:
                 last = [current]
-
             right += 1
         return moves
 
@@ -217,7 +240,6 @@ class Board:
 
             col += 1
         return moves
-    
 
     def _count_jumps(self, piece):
         jump_count = 0
@@ -268,7 +290,6 @@ class Board:
                 break
 
         return jump_count
-
 
     def evaluate(self):
         white_score = 0
@@ -329,6 +350,5 @@ class Board:
                         white_score += jump_count
                     elif piece.color == BLACK:
                         black_score += jump_count
-
 
         return white_score - black_score

@@ -14,7 +14,7 @@ def display_win_window(winner):
     pygame.font.init()
     font = pygame.font.Font('assets/BELL.TTF', 40)
     WIN.blit(DARK_RED, DARK_RED.get_rect())
-    text = font.render(f'{winner} wone!', True, GOLD)
+    text = font.render(f'{winner} won!', True, GOLD)
     text_rect = text.get_rect()
     text_rect.center = (WIDTH // 4, HEIGHT//4)
     WIN.blit(text, text_rect)

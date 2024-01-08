@@ -11,7 +11,6 @@ class Game:
         self.start_time = pygame.time.get_ticks()
         self.jumping_state = False
 
-
     def update(self):
         self.board.draw(self.win)
         self.draw_valid_moves(self.valid_moves)
@@ -41,13 +40,11 @@ class Game:
 
         return False
 
-
     def _move(self, row, col):
         piece = self.board.get_piece(row, col)
         if self.selected_piece and piece == 0 and (row, col) in self.valid_moves:
             self.board.move(self.selected_piece, row, col)
             skipped = self.valid_moves[(row, col)]
-            
             if skipped:
                 self.board.remove(skipped)
             self.change_turn()
@@ -60,11 +57,12 @@ class Game:
     def draw_valid_moves(self, moves):
         for move in moves:
             row, col = move
-            pygame.draw.circle(self.win, GREEN, (col * SQUARE_SIZE + SQUARE_SIZE//2, row * SQUARE_SIZE + SQUARE_SIZE //2), SQUARE_SIZE//3)
+            pygame.draw.circle(self.win, GREEN,
+                               (col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 2),
+                               SQUARE_SIZE // 3)
 
     def winner(self):
         return self.board.winner()
-
 
     def change_turn(self):
         self.valid_moves = []
@@ -80,13 +78,12 @@ class Game:
         seconds = elapsed_time % 60
         time_text = f"Time: {minutes}:{seconds:02d}"
         time_surface = self.font.render(time_text, True, GOLD)
-        self.win.blit(time_surface, (WIDTH//8, HEIGHT + 3))  # Adjust the position as needed
+        self.win.blit(time_surface, (WIDTH // 8, HEIGHT + 3))  # Adjust the position as needed
 
     def draw_turn(self):
         turn_text = f"Turn: {'Black' if self.turn == BLACK else 'White'}"
         turn_surface = self.font.render(turn_text, True, GOLD)
-        self.win.blit(turn_surface, (WIDTH//1.5, HEIGHT + 3))  # Adjust the position and width as needed
-
+        self.win.blit(turn_surface, (WIDTH // 1.5, HEIGHT + 3))  # Adjust the position and width as needed
     def get_board(self):
         return self.board
 
