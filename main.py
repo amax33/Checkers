@@ -2,7 +2,7 @@ import pygame
 import sys
 from checkers.constants import *
 from checkers.game import Game
-from checkers.ai import minimax, minimax_with_alpha_beta, minimax_with_forward_pruning_beam_search
+from checkers.ai import *
 
 
 def get_row_col_from_mouse(pos):
@@ -129,6 +129,8 @@ def start(mode=0, levelW=0, levelB=0):
     run = True
     clock = pygame.time.Clock()
     game = Game(WIN)
+    round_counter = 0
+    board_condition = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
     while run:
         clock.tick(FPS)
         game.update()
@@ -159,10 +161,16 @@ def start(mode=0, levelW=0, levelB=0):
 
             else:
                 game.update()
-
+                pygame.event.pump()
+                stuck_flag = None
+                board = game.get_board()
+                for b in board_condition:
+                    if [] not in board_condition:
+                        if compare(b, board):
+                            stuck_flag = board_condition[(round_counter - 1) % 16]
+                board_condition[round_counter % 16] = board
                 if game.turn == WHITE:
-                    value, new_board_white = minimax_with_alpha_beta(game.get_board(), levelW, float('-inf'),
-                                                                     float('inf'), False, game)
+                    value, new_board_white = minimax_alpha_beta(game.get_board(), levelW, False, game, stuck_flag)
                     # print(value, new_board_white)
                     if value == 'False':
                         return
@@ -170,16 +178,29 @@ def start(mode=0, levelW=0, levelB=0):
                     # clock.tick(FPS)
 
                 if game.turn == BLACK:
-                    value, new_board_black = minimax_with_alpha_beta(game.get_board(), levelB, float('-inf'),
-                                                                     float('inf'), True, game)
+                    value, new_board_black = minimax_alpha_beta(game.get_board(), levelB, True, game, stuck_flag)
                     # print(value, new_board_black)
                     if value == 'False':
                         return
                     game.ai_move(new_board_black)
                     # clock.tick(FPS)
+                round_counter += 1
 
         game.update()
     pygame.quit()
+
+
+def compare(b1, b2):
+    board1 = b1.get_board_list()
+    board2 = b2.get_board_list()
+    for i in range(len(board1)):
+        if board1[i] == 0 and board2[i] != 0:
+            return False
+        if board1[i] == (0, 0, 0) and board2[i] != (0, 0, 0):
+            return False
+        if board1[i] == (255, 250, 250) and board2[i] != (255, 250, 250):
+            return False
+    return True
 
 
 if __name__ == '__main__':
@@ -188,7 +209,7 @@ if __name__ == '__main__':
     hardness = {0: EASY, 1: NORMAL, 2: HARD}
 
     while True:
-        FPS = 60
+        FPS = 29
         WIN = pygame.display.set_mode((WIDTH // 2, HEIGHT))
         pygame.display.set_caption('Checkers')
         icon = pygame.transform.scale(ICON, ICON_SIZE)

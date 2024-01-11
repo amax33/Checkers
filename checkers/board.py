@@ -15,6 +15,13 @@ class Board:
         self.BLACK_kings = self.white_kings = 0
         self.create_board()
 
+    def get_board_list(self):
+        board = []
+        for row in self.board:
+            for e in row:
+                board.append(e)
+        return board
+
     def draw_cells(self, win):
         win.fill(BEIGE)
         footer = pygame.Rect(0, HEIGHT, WIDTH, 30)
