@@ -1,9 +1,12 @@
 from copy import deepcopy
 from .constants import WHITE, BLACK, ROWS
-
+import time
 
 MAX_PIECES_THRESHOLD = 12  # Adjust this threshold as needed
 
+
+MAX_COUNTER = 540
+init_counter = 0
 
 def evaluate_board(board):
     white_score = 0
@@ -109,6 +112,7 @@ def minimax(position, depth, max_player, game):
 
 
 def minimax_with_alpha_beta(position, depth, alpha, beta, max_player, game):
+    
     if position is not None:
         if position.winner() == BLACK:
             print('Black is winner')
@@ -130,6 +134,10 @@ def minimax_with_alpha_beta(position, depth, alpha, beta, max_player, game):
         
         for move in get_all_moves(position, WHITE, game):
             evaluation = minimax_with_alpha_beta(move, depth-1, alpha, beta, False, game)[0]
+
+            if type(evaluation) == str:
+                return "False", "False"
+            
             maxEval = max(maxEval, evaluation)
             
             if maxEval == evaluation:
@@ -138,7 +146,7 @@ def minimax_with_alpha_beta(position, depth, alpha, beta, max_player, game):
             alpha = max(alpha, evaluation)
             if beta <= alpha:
                 break  # Beta cut-off
-                
+        
         return maxEval, best_move
     
     else:
@@ -147,21 +155,25 @@ def minimax_with_alpha_beta(position, depth, alpha, beta, max_player, game):
     
         for move in get_all_moves(position, BLACK, game):
             evaluation = minimax_with_alpha_beta(move, depth-1, alpha, beta, True, game)[0]
+            
+            if type(evaluation) == str:
+                return "False", "False"
+            
             minEval = min(minEval, evaluation)
-    
+
             if minEval == evaluation:
                 best_move = move
             
             beta = min(beta, evaluation)
             if beta <= alpha:
                 break  # Alpha cut-off
-        
+
         return minEval, best_move
 
 
 
 
-def minimax_with_forward_pruning(position, depth, alpha, beta, max_player, game):
+def minimax_with_forward_pruning_beam_search(position, depth, alpha, beta, max_player, game, beam_width=20):
     if position is not None:
         if position.winner() == BLACK:
             print("Black is winner")
@@ -172,48 +184,57 @@ def minimax_with_forward_pruning(position, depth, alpha, beta, max_player, game)
             return float('inf'), None
 
         if depth == 0 or position.winner() is not None:
-            return 0, None
+            return position.evaluate(), None
 
     else:
+        print("Draw")
         return 0, None
 
-    # Forward pruning based on the number of pieces
-    if len(position.get_all_pieces(WHITE)) + len(position.get_all_pieces(BLACK)) > MAX_PIECES_THRESHOLD:
-        return 0, None
 
     if max_player:
         maxEval = float('-inf')
-        best_move = None
+        best_moves = []
 
-        for move in get_all_moves(position, WHITE, game):
-            evaluation = minimax_with_forward_pruning(move, depth-1, alpha, beta, False, game)[0]
+        moves = get_all_moves(position, WHITE, game)
+        # Use beam search to keep only top moves based on beam width
+        moves = sorted(moves, key=lambda move: minimax_with_forward_pruning_beam_search(move, depth - 1, alpha, beta, False, game, beam_width)[0], reverse=True)[:beam_width]
+
+        for move in moves:
+            evaluation = minimax_with_forward_pruning_beam_search(move, depth - 1, alpha, beta, False, game, beam_width)[0]
             maxEval = max(maxEval, evaluation)
 
             if maxEval == evaluation:
-                best_move = move
+                best_moves.append(move)
 
             alpha = max(alpha, evaluation)
             if beta <= alpha:
                 return maxEval, None  # Beta cut-off
 
-        return maxEval, best_move
+        return maxEval, best_moves
 
     else:
         minEval = float('inf')
-        best_move = None
+        best_moves = []
 
-        for move in get_all_moves(position, BLACK, game):
-            evaluation = minimax_with_forward_pruning(move, depth-1, alpha, beta, True, game)[0]
+        moves = get_all_moves(position, BLACK, game)
+        # Use beam search to keep only top moves based on beam width
+        moves = sorted(moves, key=lambda move: minimax_with_forward_pruning_beam_search(move, depth - 1, alpha, beta, True, game, beam_width)[0])[:beam_width]
+
+        for move in moves:
+            evaluation = minimax_with_forward_pruning_beam_search(move, depth - 1, alpha, beta, True, game, beam_width)[0]
             minEval = min(minEval, evaluation)
 
             if minEval == evaluation:
-                best_move = move
+                best_moves.append(move)
 
             beta = min(beta, evaluation)
             if beta <= alpha:
                 return minEval, None  # Alpha cut-off
 
-        return minEval, best_move
+        return minEval, best_moves
+
+
+
 
 def simulate_move(piece, move, board, game, skip):
     board.move(piece, move[0], move[1])

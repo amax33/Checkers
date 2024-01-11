@@ -2,7 +2,7 @@ import pygame
 import sys
 from checkers.constants import *
 from checkers.game import Game
-from checkers.ai import minimax, minimax_with_alpha_beta, minimax_with_forward_pruning
+from checkers.ai import minimax, minimax_with_alpha_beta, minimax_with_forward_pruning_beam_search
 
 
 def get_row_col_from_mouse(pos):
@@ -46,7 +46,8 @@ def display_options():
     buttons = []
     for i, option in enumerate(options):
         button_rect = pygame.Rect((WIDTH // 2 - button_width) // 2,
-                                  (HEIGHT // 2 + i * 60) - (4 - i) * 20 - (button_height // 2),
+                                  (HEIGHT // 2 + i * 60) - (4 - i) *
+                                  20 - (button_height // 2),
                                   button_width, button_height)
         buttons.append(button_rect)
 
@@ -81,7 +82,8 @@ def level_options(color):
     pygame.font.init()
     font = pygame.font.Font('assets/BELL.TTF', 15)
     WIN.blit(DARK_RED, DARK_RED.get_rect())
-    text = font.render('Choose level of hardness of ' + color + ' Player', True, GOLD)
+    text = font.render('Choose level of hardness of ' +
+                       color + ' Player', True, GOLD)
     text_rect = text.get_rect()
     text_rect.center = (WIDTH // 4, HEIGHT // 8)
     WIN.blit(text, text_rect)
@@ -92,7 +94,8 @@ def level_options(color):
     buttons = []
     for i, option in enumerate(options):
         button_rect = pygame.Rect((WIDTH // 2 - button_width) // 2,
-                                  (HEIGHT // 3 + i * 40) - (4 - i) * 20 - (button_height // 2),
+                                  (HEIGHT // 3 + i * 40) - (4 - i) *
+                                  20 - (button_height // 2),
                                   button_width, button_height)
         buttons.append(button_rect)
 
@@ -140,7 +143,8 @@ def start(mode=0, levelW=0, levelB=0):
 
             if mode != AI_VS_AI:
                 if game.turn == WHITE and mode == PLAYER_VS_AI:
-                    value, new_board = minimax(game.get_board(), levelW, WHITE, game)
+                    value, new_board = minimax(
+                        game.get_board(), levelW, WHITE, game)
                     game.ai_move(new_board)
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -159,20 +163,20 @@ def start(mode=0, levelW=0, levelB=0):
                 if game.turn == WHITE:
                     value, new_board_white = minimax_with_alpha_beta(game.get_board(), levelW, float('-inf'),
                                                                      float('inf'), False, game)
-                    print(value, new_board_white)
+                    # print(value, new_board_white)
                     if value == 'False':
                         return
                     game.ai_move(new_board_white)
-                    clock.tick(FPS)
+                    # clock.tick(FPS)
 
                 if game.turn == BLACK:
                     value, new_board_black = minimax_with_alpha_beta(game.get_board(), levelB, float('-inf'),
                                                                      float('inf'), True, game)
-                    print(value, new_board_black)
+                    # print(value, new_board_black)
                     if value == 'False':
                         return
                     game.ai_move(new_board_black)
-                    clock.tick(FPS)
+                    # clock.tick(FPS)
 
         game.update()
     pygame.quit()
@@ -199,10 +203,8 @@ if __name__ == '__main__':
             WIN = pygame.display.set_mode((WIDTH, HEIGHT + 30))
             start(mode=PLAYER_VS_AI, levelW=levelw)
 
-
         elif mode == AI_VS_AI:
             levelw = hardness.get(level_options('White'))
             levelb = hardness.get(level_options('Black'))
             WIN = pygame.display.set_mode((WIDTH, HEIGHT + 30))
             start(mode=AI_VS_AI, levelW=levelw, levelB=levelb)
-            break
