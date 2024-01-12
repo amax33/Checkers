@@ -64,7 +64,9 @@ def max_value_alpha_beta(position, depth, game, a, b, stuck_board, prune):
         states = forward_pruning(position, BLACK, game, stuck_board)
     else:
         states = get_all_moves(position, BLACK, game, stuck_board)
-    v = float('-inf')
+    if len(states) == 0:
+        return None, float('inf')
+    v = a
     for state in states:
         _, new_value = min_value_alpha_beta(state, depth, game, a, b, stuck_board, prune)
         if new_value > v:
@@ -86,7 +88,9 @@ def min_value_alpha_beta(position, depth, game, a, b, stuck_board, prune):
         states = forward_pruning(position, WHITE, game, stuck_board)
     else:
         states = get_all_moves(position, WHITE, game, stuck_board)
-    v = float('inf')
+    if len(states) == 0:
+        return None, float('-inf')
+    v = b
     for state in states:
         _, new_value = max_value_alpha_beta(state, depth, game, a, b, stuck_board, prune)
         if new_value < v:
@@ -98,7 +102,7 @@ def min_value_alpha_beta(position, depth, game, a, b, stuck_board, prune):
 
     return action, v
 
-def forward_pruning(position, color, game, stuck_board, num_moves_to_consider=3):
+def forward_pruning(position, color, game, stuck_board, num_moves_to_consider=2):
     """
     Forward pruning to only consider a limited number of moves based on static evaluation.
     """

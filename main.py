@@ -181,14 +181,10 @@ def start(mode=0, levelW=0, levelB=0):
                 board_condition[round_counter % 16] = board
                 if game.turn == WHITE:
                     value, new_board_white = minimax_alpha_beta(game.get_board(), levelW, False, game, stuck_flag, prune=True)
-                    if value == 'False':
-                        return
                     game.ai_move(new_board_white)
 
                 if game.turn == BLACK:
                     value, new_board_black = minimax_alpha_beta(game.get_board(), levelB, True, game, stuck_flag, prune=True)
-                    if value == 'False':
-                        return
                     game.ai_move(new_board_black)
                 round_counter += 1
 
