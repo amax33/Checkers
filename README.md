@@ -32,6 +32,11 @@ Certainly! Writing full documentation for a project typically involves covering 
         - [Methods](#methods-2)
     - [`main.py` ](#mainpy-)
       - [Main Functions](#main-functions)
+  - [Example](#example)
+    - [MAIN WINDOW](#main-window)
+    - [PLAYER-VS-PLAYER](#player-vs-player)
+    - [PLAYER-VS-AI](#player-vs-ai)
+  - [AI-VS-AI](#ai-vs-ai)
 
 ## 1. Overview <a name="#overview"></a>
 
@@ -303,3 +308,21 @@ This is the main script that initializes the game and handles user input.
 - `start(mode=0, levelW=0, levelB=0) -> None`: Starts the game with specified mode and AI levels.
 - `compare(b1, b2) -> bool`: Compares two board states for equality.
 
+## Example
+
+### MAIN WINDOW
+![](./md-assets/main-window.png)
+
+### PLAYER-VS-PLAYER
+![](./md-assets/player_vs_player.gif)
+
+
+### PLAYER-VS-AI
+![](./md-assets/player_vs_AI.png)
+![](./md-assets/player_vs_ai.gif)
+
+
+## AI-VS-AI
+![](./md-assets/AI_AI_white.png)
+![](./md-assets/AI_AI_black.png)
+![](./md-assets/ai-ai-play.gif)
