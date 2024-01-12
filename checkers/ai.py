@@ -64,12 +64,12 @@ def max_value_alpha_beta(position, depth, game, a, b, stuck_board):
     v = float('-inf')
     for state in states:
         _, new_value = min_value_alpha_beta(state, depth, game, a, b, stuck_board)
-        if max(v, new_value) > v:
+        if new_value > v:
             v = new_value
             action = state
-        if v > b:
-            return action, v
         a = max(a, v)
+        if v >= b:
+            return action, v
     return action, v
 
 
@@ -83,12 +83,12 @@ def min_value_alpha_beta(position, depth, game, a, b, stuck_board):
     v = float('inf')
     for state in states:
         _, new_value = max_value_alpha_beta(state, depth, game, a, b, stuck_board)
-        if min(v, new_value) < v:
+        if new_value < v:
             v = new_value
             action = state
+        b = min(b, v)
         if v <= a:
             return action, v
-        b = min(b, v)
 
     return action, v
 
@@ -167,7 +167,7 @@ def simulate_move(piece, move, board, game, skip):
     return board
 
 
-def get_all_moves(board, color, game, stuck_board=None):
+def get_all_moves(board, color, game, stuck_board):
     pygame.event.pump()
     moves = []
     for piece in board.get_all_pieces(color):
