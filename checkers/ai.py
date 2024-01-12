@@ -46,24 +46,27 @@ def minimax(position, depth, max_player, game):
     return v, action
 
 
-def minimax_alpha_beta(position, depth, max_player, game, stuck_board):
+def minimax_alpha_beta(position, depth, max_player, game, stuck_board, prune=False):
     if max_player:
-        action, v = max_value_alpha_beta(position, depth, game, float('-inf'), float('inf'), stuck_board)
+        action, v = max_value_alpha_beta(position, depth, game, float('-inf'), float('inf'), stuck_board, prune)
     else:
-        action, v = min_value_alpha_beta(position, depth, game, float('-inf'), float('inf'), stuck_board)
+        action, v = min_value_alpha_beta(position, depth, game, float('-inf'), float('inf'), stuck_board, prune)
     return v, action
 
 
-def max_value_alpha_beta(position, depth, game, a, b, stuck_board):
+def max_value_alpha_beta(position, depth, game, a, b, stuck_board, prune):
     action = None
     new_value = 0
     if depth == 0 or position.winner() is not None:
         return position, position.evaluate()
-    states = get_all_moves(position, BLACK, game, stuck_board)
     depth -= 1
+    if prune:
+        states = forward_pruning(position, BLACK, game, stuck_board)
+    else:
+        states = get_all_moves(position, BLACK, game, stuck_board)
     v = float('-inf')
     for state in states:
-        _, new_value = min_value_alpha_beta(state, depth, game, a, b, stuck_board)
+        _, new_value = min_value_alpha_beta(state, depth, game, a, b, stuck_board, prune)
         if new_value > v:
             v = new_value
             action = state
@@ -73,16 +76,19 @@ def max_value_alpha_beta(position, depth, game, a, b, stuck_board):
     return action, v
 
 
-def min_value_alpha_beta(position, depth, game, a, b, stuck_board):
+def min_value_alpha_beta(position, depth, game, a, b, stuck_board, prune):
     action = None
     new_value = 0
     if depth == 0 or position.winner() is not None:
         return position, position.evaluate()
     depth -= 1
-    states = get_all_moves(position, WHITE, game, stuck_board)
+    if prune:
+        states = forward_pruning(position, WHITE, game, stuck_board)
+    else:
+        states = get_all_moves(position, WHITE, game, stuck_board)
     v = float('inf')
     for state in states:
-        _, new_value = max_value_alpha_beta(state, depth, game, a, b, stuck_board)
+        _, new_value = max_value_alpha_beta(state, depth, game, a, b, stuck_board, prune)
         if new_value < v:
             v = new_value
             action = state
@@ -92,70 +98,29 @@ def min_value_alpha_beta(position, depth, game, a, b, stuck_board):
 
     return action, v
 
+def forward_pruning(position, color, game, stuck_board, num_moves_to_consider=3):
+    """
+    Forward pruning to only consider a limited number of moves based on static evaluation.
+    """
+    all_moves = get_all_moves(position, color, game, stuck_board)
+    evaluated_moves = []
 
-def minimax_with_forward_pruning_beam_search(position, depth, alpha, beta, max_player, game, beam_width=20):
-    if position is not None:
-        if position.winner() == BLACK:
-            print("Black is winner")
-            return float('-inf'), None
+    # Evaluate all moves and sort them
+    for move in all_moves:
+        evaluated_moves.append((move, move.evaluate()))
 
-        if position.winner() == WHITE:
-            print("White is winner")
-            return float('inf'), None
-
-        if depth == 0 or position.winner() is not None:
-            return position.evaluate(), None
-
+    # Sort the moves based on evaluation score
+    if color == WHITE:
+        # White aims for the lowest score (minimizer)
+        evaluated_moves.sort(key=lambda x: x[1])
     else:
-        print("Draw")
-        return 0, None
+        # Black aims for the highest score (maximizer)
+        evaluated_moves.sort(key=lambda x: x[1], reverse=True)
 
-    if max_player:
-        maxEval = float('-inf')
-        best_moves = []
+    # Select the top 'num_moves_to_consider' moves
+    pruned_moves = [move for move, score in evaluated_moves[:num_moves_to_consider]]
 
-        moves = get_all_moves(position, WHITE, game)
-        # Use beam search to keep only top moves based on beam width
-        moves = sorted(moves, key=lambda move:
-        minimax_with_forward_pruning_beam_search(move, depth - 1, alpha, beta, False, game, beam_width)[0],
-                       reverse=True)[:beam_width]
-
-        for move in moves:
-            evaluation = \
-                minimax_with_forward_pruning_beam_search(move, depth - 1, alpha, beta, False, game, beam_width)[0]
-            maxEval = max(maxEval, evaluation)
-
-            if maxEval == evaluation:
-                best_moves.append(move)
-
-            alpha = max(alpha, evaluation)
-            if beta <= alpha:
-                return maxEval, None  # Beta cut-off
-
-        return maxEval, best_moves
-
-    else:
-        minEval = float('inf')
-        best_moves = []
-
-        moves = get_all_moves(position, BLACK, game)
-        # Use beam search to keep only top moves based on beam width
-        moves = sorted(moves, key=lambda move:
-        minimax_with_forward_pruning_beam_search(move, depth - 1, alpha, beta, True, game, beam_width)[0])[:beam_width]
-
-        for move in moves:
-            evaluation = minimax_with_forward_pruning_beam_search(move, depth - 1, alpha, beta, True, game, beam_width)[
-                0]
-            minEval = min(minEval, evaluation)
-
-            if minEval == evaluation:
-                best_moves.append(move)
-
-            beta = min(beta, evaluation)
-            if beta <= alpha:
-                return minEval, None  # Alpha cut-off
-
-        return minEval, best_moves
+    return pruned_moves
 
 
 def simulate_move(piece, move, board, game, skip):
