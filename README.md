@@ -1,7 +1,3 @@
-Certainly! Writing full documentation for a project typically involves covering various aspects, including project overview, installation instructions, code structure, classes and methods, usage examples, and any additional information that might be helpful for users or developers. Below is a basic template for your project's documentation in Markdown format:
-
----
-
 # Checkers Game Documentation
 
 ## Table of Contents
