@@ -3,11 +3,6 @@ from copy import deepcopy
 from .constants import WHITE, BLACK, ROWS
 import pygame
 
-MAX_PIECES_THRESHOLD = 12  # Adjust this threshold as needed
-
-MAX_COUNTER = 540
-init_counter = 0
-
 
 def max_value(position, depth, game):
     action = None
@@ -127,7 +122,7 @@ def minimax_with_forward_pruning_beam_search(position, depth, alpha, beta, max_p
 
         for move in moves:
             evaluation = \
-            minimax_with_forward_pruning_beam_search(move, depth - 1, alpha, beta, False, game, beam_width)[0]
+                minimax_with_forward_pruning_beam_search(move, depth - 1, alpha, beta, False, game, beam_width)[0]
             maxEval = max(maxEval, evaluation)
 
             if maxEval == evaluation:
@@ -172,7 +167,7 @@ def simulate_move(piece, move, board, game, skip):
     return board
 
 
-def get_all_moves(board, color, game, stuck_board):
+def get_all_moves(board, color, game, stuck_board=None):
     pygame.event.pump()
     moves = []
     for piece in board.get_all_pieces(color):
@@ -189,8 +184,8 @@ def get_all_moves(board, color, game, stuck_board):
 
     return moves
 
+
 def compare(board1, board2):
-    print(board1)
     for i in range(len(board1)):
         if board1[i] == 0 and board2[i] != 0:
             return False

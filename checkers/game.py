@@ -54,7 +54,7 @@ class Game:
             if skipped:
                 self.board.remove(skipped)
             self.change_turn()
-        
+
         else:
             return False
 
@@ -66,17 +66,23 @@ class Game:
 
             # Star coordinates
             star_points = [(col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 8),  # Top point
-                           (col * SQUARE_SIZE + SQUARE_SIZE * 3 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 3 // 8), # Up left
+                           (col * SQUARE_SIZE + SQUARE_SIZE * 3 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 3 // 8),
+                           # Up left
                            (col * SQUARE_SIZE + SQUARE_SIZE // 8, row * SQUARE_SIZE + SQUARE_SIZE // 2),  # Middle left
-                           (col * SQUARE_SIZE + SQUARE_SIZE * 3 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 5 // 8), # Down left
-                           (col * SQUARE_SIZE + SQUARE_SIZE // 2, (row + 1) * SQUARE_SIZE - SQUARE_SIZE // 8),  # Middle down
-                           (col * SQUARE_SIZE + SQUARE_SIZE * 5 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 5 // 8), # Down right
-                            ((col+1) * SQUARE_SIZE - SQUARE_SIZE // 8, row * SQUARE_SIZE + SQUARE_SIZE // 2),  # Middle right
-                            (col * SQUARE_SIZE + SQUARE_SIZE * 5 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 3 // 8),  # Up right
-                            (col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 8)]  # Top point
-
+                           (col * SQUARE_SIZE + SQUARE_SIZE * 3 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 5 // 8),
+                           # Down left
+                           (col * SQUARE_SIZE + SQUARE_SIZE // 2, (row + 1) * SQUARE_SIZE - SQUARE_SIZE // 8),
+                           # Middle down
+                           (col * SQUARE_SIZE + SQUARE_SIZE * 5 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 5 // 8),
+                           # Down right
+                           ((col + 1) * SQUARE_SIZE - SQUARE_SIZE // 8, row * SQUARE_SIZE + SQUARE_SIZE // 2),
+                           # Middle right
+                           (col * SQUARE_SIZE + SQUARE_SIZE * 5 // 8, row * SQUARE_SIZE + SQUARE_SIZE * 3 // 8),
+                           # Up right
+                           (col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 8)]  # Top point
 
             pygame.draw.polygon(self.win, GRAY, star_points)
+
     def winner(self):
         return self.board.winner()
 
@@ -94,17 +100,16 @@ class Game:
         seconds = elapsed_time % 60
         time_text = f"Time: {minutes}:{seconds:02d}"
         time_surface = self.font.render(time_text, True, GOLD)
-        self.win.blit(time_surface, (WIDTH // 8, HEIGHT + 3))  # Adjust the position as needed
+        self.win.blit(time_surface, (WIDTH // 8, HEIGHT + 3))
 
     def draw_turn(self):
         turn_text = f"Turn: {'Black' if self.turn == BLACK else 'White'}"
         turn_surface = self.font.render(turn_text, True, GOLD)
         self.win.blit(turn_surface, (WIDTH // 1.5, HEIGHT + 3))  # Adjust the position and width as needed
+
     def get_board(self):
         return self.board
 
     def ai_move(self, board):
         self.board = board
         self.change_turn()
-
-        

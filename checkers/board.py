@@ -71,12 +71,18 @@ class Board:
             self.board[piece.row][piece.col] = 0
 
     def winner(self):
+        black_move = 0
+        white_move = 0
         for row in self.board:
             for e in row:
                 if isinstance(e, Piece):
                     if e.color == BLACK:
                         self.BLACK_left += 1
+                        if black_move <= 0:
+                            black_move += len(self.get_valid_moves(e))
                     elif e.color == WHITE:
+                        if white_move <= 0:
+                            white_move += len(self.get_valid_moves(e))
                         self.white_left += 1
         if self.BLACK_left <= 0:
             return WHITE
@@ -85,6 +91,14 @@ class Board:
         else:
             self.BLACK_left = 0
             self.white_left = 0
+        if black_move == 0 and white_move == 0:
+            return GRAY
+        if black_move == 0:
+            return WHITE
+        if white_move == 0:
+            return BLACK
+        return None
+
 
     def get_valid_moves(self, piece, flag=True):
         moves = {}
@@ -181,7 +195,7 @@ class Board:
             current = self.board[r][right]
             # empty square found
             if current == 0:
-                # we we skipped over something which is not last and we found a blank square --> break
+                # we skipped over something which is not last and we found a blank square --> break
                 if skipped and not last:
                     break
                 elif skipped:
@@ -205,7 +219,7 @@ class Board:
             # the piece we are trying to move is same as that of ours so we are blocked hence break
             elif current.color == color:
                 break
-            # Now we can move over that peice assuming that there is an empty square after that
+            # Now we can move over that piece assuming that there is an empty square after that
             else:
                 last = [current]
             right += 1
@@ -358,4 +372,4 @@ class Board:
                     elif piece.color == BLACK:
                         black_score += jump_count
 
-        return white_score - black_score
+        return black_score - white_score

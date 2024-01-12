@@ -1,8 +1,11 @@
 import pygame
 import sys
+import os
 from checkers.constants import *
 from checkers.game import Game
 from checkers.ai import *
+
+os.environ['SDL_VIDEO_CENTERED'] = '1'  # Center the window
 
 
 def get_row_col_from_mouse(pos):
@@ -13,13 +16,21 @@ def get_row_col_from_mouse(pos):
 
 
 def display_win_window(winner):
+    WIN = pygame.display.set_mode((WIDTH * 2 // 3, HEIGHT // 3))
     pygame.font.init()
     font = pygame.font.Font('assets/BELL.TTF', 40)
-    WIN.blit(DARK_RED, DARK_RED.get_rect())
-    text = font.render(f'{winner} won!', True, GOLD)
+    WIN.blit(pygame.transform.rotate(DARK_RED, 90), pygame.transform.rotate(DARK_RED, 90).get_rect())
+    if winner == (255, 250, 250):
+        text = font.render('Player White won!', True, GOLD)
+    elif winner == (0, 0, 0):
+        text = font.render('Player Black won!', True, GOLD)
+    else:
+        text = font.render('Draw!!!', True, GOLD)
+
     text_rect = text.get_rect()
-    text_rect.center = (WIDTH // 4, HEIGHT // 4)
+    text_rect.center = (WIDTH // 3, HEIGHT // 6)
     WIN.blit(text, text_rect)
+    pygame.display.flip()
 
     run = True
     while run:
@@ -130,12 +141,12 @@ def start(mode=0, levelW=0, levelB=0):
     clock = pygame.time.Clock()
     game = Game(WIN)
     round_counter = 0
-    board_condition = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
+    board_condition = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
     while run:
         clock.tick(FPS)
         game.update()
+        stuck_flag = None
         if game.winner() is not None:
-            print(game.winner(), " Winner")
             display_win_window(game.winner())
             pygame.quit()
 
@@ -145,8 +156,8 @@ def start(mode=0, levelW=0, levelB=0):
 
             if mode != AI_VS_AI:
                 if game.turn == WHITE and mode == PLAYER_VS_AI:
-                    value, new_board = minimax(
-                        game.get_board(), levelW, WHITE, game)
+                    value, new_board = minimax_alpha_beta(
+                        game.get_board(), levelW, False, game, stuck_flag)
                     game.ai_move(new_board)
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -162,28 +173,23 @@ def start(mode=0, levelW=0, levelB=0):
             else:
                 game.update()
                 pygame.event.pump()
-                stuck_flag = None
                 board = game.get_board()
                 for b in board_condition:
                     if [] not in board_condition:
                         if compare(b, board):
-                            stuck_flag = board_condition[(round_counter - 1) % 16]
-                board_condition[round_counter % 16] = board
+                            stuck_flag = board_condition[(round_counter - 1) % 17]
+                board_condition[round_counter % 17] = board
                 if game.turn == WHITE:
                     value, new_board_white = minimax_alpha_beta(game.get_board(), levelW, False, game, stuck_flag)
-                    # print(value, new_board_white)
                     if value == 'False':
                         return
                     game.ai_move(new_board_white)
-                    # clock.tick(FPS)
 
                 if game.turn == BLACK:
                     value, new_board_black = minimax_alpha_beta(game.get_board(), levelB, True, game, stuck_flag)
-                    # print(value, new_board_black)
                     if value == 'False':
                         return
                     game.ai_move(new_board_black)
-                    # clock.tick(FPS)
                 round_counter += 1
 
         game.update()
