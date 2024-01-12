@@ -172,7 +172,7 @@ This file contains the AI-related functions for making moves.
   - `maximizing_player` (`bool`): A boolean indicating whether the current player is maximizing (True) or minimizing (False).
   - `game` (`Game`): An instance of the `Game` class representing the current game state.
   - `stuck_flag` (`Optional[Dict[Tuple[int, int], Tuple[int, int]]]`): A dictionary representing the board state in a previous round, used to detect repetitions.
-  - `prune` (`Optional[bool]`): A boolean indicating whether to apply alpha-beta pruning.
+  - `prune` (`Optional[bool]`): A boolean indicating whether to apply forward pruning.
 
 - **Returns:**
   - A tuple containing the best move's value and the resulting board state.
