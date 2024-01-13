@@ -268,12 +268,12 @@ def start(mode=0, levelW=0, levelB=0):
                 
                 if game.turn == WHITE:
                     # White AI's turn, use minimax with alpha-beta pruning to make a move
-                    value, new_board_white = minimax_alpha_beta(game.get_board(), levelW, False, game, stuck_flag, prune=True)
+                    value, new_board_white = minimax_alpha_beta(game.get_board(), levelW, False, game, stuck_flag, prune=False)
                     game.ai_move(new_board_white)
 
                 if game.turn == BLACK:
                     # Black AI's turn, use minimax with alpha-beta pruning to make a move
-                    value, new_board_black = minimax_alpha_beta(game.get_board(), levelB, True, game, stuck_flag, prune=True)
+                    value, new_board_black = minimax_alpha_beta(game.get_board(), levelB, True, game, stuck_flag, prune=False)
                     game.ai_move(new_board_black)
                 
                 round_counter += 1
