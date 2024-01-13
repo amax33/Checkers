@@ -30,4 +30,4 @@ AI_VS_AI = 2
 
 EASY = 1
 NORMAL = 3
-HARD = 7
+HARD = 4
